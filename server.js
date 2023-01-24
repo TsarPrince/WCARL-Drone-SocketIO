@@ -20,12 +20,12 @@ io.on('connection', socket => {
     console.log(`${userId} user joined ${roomId} room`)
     socket.join(roomId)
     socket.to(roomId).emit('user-connected', userId)
-    // socket.broadcast.emit('user-connected', userId)            // ⚠️⚠️⚠️ streams in all rooms
+    // socket.broadcast.emit('user-connected', userId)            // ⚠️ streams in all rooms
 
     socket.on('disconnect', () => {
       console.log(`${userId} user disconnected`)
       socket.to(roomId).emit('user-disconnected', userId)
-      // socket.broadcast.emit('user-disconnected', userId)       // ⚠️⚠️⚠️ streams in all rooms
+      // socket.broadcast.emit('user-disconnected', userId)       // ⚠️ streams in all rooms
     })
   })
 })
