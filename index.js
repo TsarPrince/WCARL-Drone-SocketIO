@@ -3,10 +3,14 @@ const app = express()
 const cors = require('cors')
 
 // uploading video to google drive
-const dotenv = require('dotenv')
 const multer = require('multer');
 const { google } = require('googleapis');
 const { Readable } = require('stream');
+
+const dotenv = require('dotenv')
+dotenv.config()
+
+const PORT = process.env.PORT || 8080
 
 const server = require('http').Server(app)
 const io = require('socket.io')(server, {
@@ -15,7 +19,6 @@ const io = require('socket.io')(server, {
   },
 })
 
-dotenv.config()
 app.use(cors())
 
 const jwtClient = new google.auth.JWT({
@@ -158,6 +161,6 @@ io.on('connection', socket => {
   })
 })
 
-server.listen(8080, () => {
-  console.log('Listening on http://localhost:8080')
+server.listen(PORT, () => {
+  console.log(`Listening on http://localhost:${PORT}`)
 })
