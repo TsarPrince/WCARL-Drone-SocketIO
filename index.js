@@ -1,6 +1,13 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
+
+// uploading video to google drive
+const dotenv = require('dotenv')
+const multer = require('multer');
+const { google } = require('googleapis');
+const { Readable } = require('stream');
+
 const server = require('http').Server(app)
 const io = require('socket.io')(server, {
   cors: {
@@ -8,7 +15,61 @@ const io = require('socket.io')(server, {
   },
 })
 
+dotenv.config()
 app.use(cors())
+
+const jwtClient = new google.auth.JWT({
+  scopes: ['https://www.googleapis.com/auth/drive'],
+  email: process.env.GOOGLE_DRIVE_CLIENT_EMAIL,
+  key: process.env.GOOGLE_DRIVE_PRIVATE_KEY
+});
+
+const drive = google.drive({
+  version: 'v3',
+  auth: jwtClient,
+});
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // Limit file size to 50MB
+  },
+});
+
+app.post('/upload', upload.single('video'), async (req, res) => {
+  console.log(req.file)
+  try {
+    const { originalname, mimetype, buffer } = req.file;
+
+    const driveFileMetadata = {
+      name: originalname,
+      parents: ['17af3fGdS98wHNYY-gV8e9KgHg2JjCiWj'], // Replace with the ID of the folder you want to upload to
+    };
+
+    const driveFile = {
+      mimeType: mimetype,
+      // ⭐⭐⭐ following won't work ⭐⭐⭐
+      // body: buffer.toString('base64'),
+      // body: buffer.toString('utf-8'),
+      // body: new ArrayBuffer(buffer),
+      // body: new Uint8Array(buffer),
+      body: Readable.from(buffer),
+    };
+
+    // ⭐⭐⭐ this is not synchronous, except it is! ⭐⭐⭐
+    const uploadedFile = await drive.files.create({
+      resource: driveFileMetadata,
+      media: driveFile,
+      fields: 'id',
+    });
+
+    console.log('File uploaded:', uploadedFile.data.id);
+    res.status(200).send('File uploaded successfully');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
+});
 
 app.get('/', (_, res) => {
   res.status(200).json({
