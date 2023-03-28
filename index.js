@@ -19,7 +19,12 @@ const io = require('socket.io')(server, {
   },
 })
 
-app.use(cors())
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'https://wcarl-drone.vercel.app/',
+  ]
+}))
 
 const jwtClient = new google.auth.JWT({
   scopes: ['https://www.googleapis.com/auth/drive'],
@@ -45,7 +50,7 @@ app.post('/upload', upload.single('video'), async (req, res) => {
     const { originalname, mimetype, buffer } = req.file;
 
     const driveFileMetadata = {
-      name: originalname,
+      name: new Date().toISOString() + '-' + originalname,
       parents: ['17af3fGdS98wHNYY-gV8e9KgHg2JjCiWj'], // Replace with the ID of the folder you want to upload to
     };
 
