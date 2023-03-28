@@ -22,7 +22,7 @@ const io = require('socket.io')(server, {
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://wcarl-drone.vercel.app/',
+    'https://wcarl-drone.vercel.app',
   ]
 }))
 
